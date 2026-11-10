@@ -51,20 +51,36 @@ Modal, Scrap) ada di `references/alur_kategori_barang.md`.
 
 Pemetaan jenis dokumen BC ke tabel database ada di `references/pemetaan_tabel_bc.md`.
 
-## 2. Input yang Dibutuhkan dari User
+## 2. Data Minimal (Checklist Wajib Sebelum Mulai)
 
-Minta user menyediakan (jika belum diunggah):
+Sebelum mulai mengerjakan monsus, pastikan kelompok data A–D di bawah ini sudah
+tersedia. Kalau belum lengkap, **minta dulu ke user** — jangan mulai menghitung dari
+data yang kosong, parsial, atau diasumsikan.
 
-**A. Data IT Inventory (wajib, biasanya file `.xls`/`.xlsx` hasil export sistem inventory):**
-- Laporan Mutasi Bahan Baku
-- Laporan Mutasi Barang Jadi
-- Laporan Mutasi Barang Sisa (Scrap)
-- Laporan Mutasi Mesin/Barang Modal (jika ada aktivitas barang modal)
+**A. IT Inventory — Laporan tiap jenis barang, Mutasi Masuk & Keluar (wajib, biasanya
+file `.xls`/`.xlsx` hasil export sistem inventory):**
+- Mutasi **Bahan Baku & Penolong**
+- Mutasi **Barang Jadi** (Finished Goods)
+- Mutasi **Barang Sisa** (Scrap/Limbah)
+- Mutasi **Barang Modal** (Mesin & Parts) — jika ada aktivitas barang modal di periode itu
 - Laporan Pemasukan Barang Per Dokumen
 - Laporan Pengeluaran Barang Per Dokumen
-- Laporan Hasil Stock Opname (saldo awal periode) — opsional tapi sangat disarankan
+- Laporan Hasil Stock Opname (saldo awal tiap kategori di atas untuk periode yang
+  dianalisis) — sangat disarankan, dibutuhkan untuk menghitung saldo akhir buku
 
-**B. Data Bea Cukai — sumbernya fleksibel, pilih salah satu:**
+**B. Data WIP (Barang Dalam Proses)** — sering terlewat karena banyak sistem inventory
+tidak punya laporan mutasi WIP yang berdiri sendiri seperti kategori lain. Minimal
+butuh salah satu dari:
+- Laporan Mutasi WIP tersendiri (kalau sistem user punya), ATAU
+- Kombinasi: **Saldo Awal WIP** (dari Stock Opname) + **rekap pemakaian bahan baku ke
+  produksi** (masuk WIP) + **rekap hasil produksi** yang ditransfer menjadi Barang Jadi
+  dan Scrap (keluar WIP), per periode monitoring yang sama.
+
+Tanpa data WIP, saldo akhir Barang Jadi & Scrap tidak bisa divalidasi penuh (lihat
+alur kategori di `references/alur_kategori_barang.md`) — jangan asumsikan saldo WIP
+nol atau konstan tanpa konfirmasi ke user.
+
+**C. Data Bea Cukai (wajib, sumbernya fleksibel, pilih salah satu):**
 - **Akses database CEISA/TPB langsung** (jika tersedia) — lihat
   `references/pemetaan_tabel_bc.md` untuk nama tabel & kolom filter per jenis dokumen BC.
 - **Upload Excel/CSV** yang disiapkan user sendiri (paling umum jika user tidak punya
@@ -78,12 +94,28 @@ diambil dari DB sementara BC 2.6.1/2.6.2 (subkontrak) diupload manual via Excel 
 tabelnya belum tersedia di DB. Sesuaikan `CONFIG["USE_DB"]` dan isi file per jenis BC
 yang datanya belum ada di DB.
 
-**C. Identitas & periode:**
+**D. Identitas & periode (wajib):**
 - Nama perusahaan, NPWP, No. SKEP Kawasan Berikat (jika relevan)
 - Rentang tanggal periode monitoring (tanggal mulai & akhir)
 
-Jika salah satu data di atas kosong untuk kategori tertentu (misal perusahaan tidak
-punya aktivitas Barang Modal), lewati kategori itu — jangan dipaksakan.
+Jika salah satu data di atas kosong untuk kategori tertentu karena memang tidak relevan
+(misal perusahaan tidak punya aktivitas Barang Modal sama sekali di periode itu), lewati
+kategori itu — ini beda dengan data yang relevan tapi belum diupload, yang harus diminta
+dulu ke user (lihat aturan di bawah).
+
+### Kalau permintaan user lebih spesifik dari data minimal di atas
+
+Kalau di tengah analisis user minta sesuatu yang lebih detail/spesifik dari data minimal
+yang sudah tersedia (misal: rincian per item barang, breakdown subkontrak BC 2.6.1/2.6.2
+yang belum diupload, data BOM/komposisi untuk kasus kebakaran di bagian 5, filter per
+mitra/pemasok tertentu, dsb.) dan **data pendukungnya belum ada**:
+
+- **Jangan menebak, mengekstrapolasi, atau mengisi dengan asumsi/nol** supaya analisis
+  tetap "jalan".
+- **Hentikan dan sampaikan ke user secara spesifik** data apa yang kurang (nama
+  file/kolom yang dibutuhkan), lalu minta mereka mengunggah/menyediakannya dulu.
+- Lanjutkan analisis permintaan spesifik itu setelah data tersebut tersedia. Bagian
+  rekonsiliasi umum yang datanya sudah lengkap tetap bisa dikerjakan/dilaporkan duluan.
 
 ## 3. Langkah Eksekusi
 
