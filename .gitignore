@@ -1,0 +1,7 @@
+data/
+*.xls
+*.xlsx
+!examples/**/*.xlsx
+.env
+__pycache__/
+*.pyc
