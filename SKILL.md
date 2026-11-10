@@ -8,8 +8,9 @@ description: >-
   data IT Inventory (Laporan Mutasi Bahan Baku/Barang Jadi/Barang Sisa/Mesin, Laporan
   Stock Opname, Laporan Pemasukan/Pengeluaran Per Dokumen) dan/atau data Bea Cukai,
   lalu meminta dibuatkan rekonsiliasi/penyandingan/monsus/audit kesesuaian saldo buku.
-  TIDAK mencakup kasus khusus kebakaran/klaim barang terbakar (musnah) — itu di luar
-  lingkup skill ini dan butuh penanganan tersendiri.
+  Mencakup juga modul kasus khusus insiden kebakaran/barang musnah: audit selisih
+  klaim Stock Opname pasca-insiden dan penghitungan estimasi tagihan pungutan (BM/PPN/PPh
+  Impor) atas selisihnya — lihat references/kasus_khusus_kebakaran.md.
 ---
 
 # Monsus (Monitoring Khusus) Kawasan Berikat — Rekonsiliasi IT Inventory vs Data Bea Cukai
@@ -20,10 +21,11 @@ perusahaan pemilik fasilitas Kawasan Berikat / TPB (Tempat Penimbunan Berikat) a
 1. **IT Inventory perusahaan** (buku mutasi barang + laporan per dokumen pabean), dan
 2. **Data resmi deklarasi Bea Cukai** (database CEISA/TPB).
 
-Cakupan skill ini adalah rekonsiliasi **umum** (saldo, dokumen, kuantitas). Kasus
-khusus seperti investigasi kebakaran/klaim barang musnah **tidak** dibahas di sini —
-itu memerlukan analisis forensik tambahan (perbandingan SO pasca-insiden vs saldo
-buku) yang di luar lingkup skill ini.
+Cakupan utama skill ini adalah rekonsiliasi **umum** (saldo, dokumen, kuantitas).
+Jika perusahaan mengalami insiden (kebakaran/barang musnah) dan mengajukan klaim
+Stock Opname pasca-insiden ke Bea Cukai, gunakan modul tambahan **Kasus Khusus
+Kebakaran** (bagian 5 di bawah) untuk mencari selisih klaim dan menghitung estimasi
+tagihan pungutan atas selisih tersebut.
 
 ## 1. Konsep Inti: 3 Pilar Data
 
@@ -127,6 +129,27 @@ punya aktivitas Barang Modal), lewati kategori itu — jangan dipaksakan.
 - **Jangan masukkan kredensial database, nama perusahaan, NPWP, atau data klien nyata**
   ke dalam file apa pun di folder skill ini sebelum di-push ke repo publik. Gunakan
   `examples/` hanya untuk data contoh yang sudah di-anonimkan/fiktif.
-- **Di luar lingkup**: analisis klaim barang terbakar/musnah pasca-insiden (butuh
-  perbandingan Stock Opname pasca-insiden vs saldo buku sebelum insiden + pencacahan
-  fisik forensik) — itu kasus khusus, tangani di luar skill ini.
+
+## 5. Kasus Khusus: Insiden Kebakaran / Barang Musnah
+
+Jika user menyebut ada insiden (kebakaran, bencana, dll.) dan klaim Stock Opname
+pasca-insiden ke Bea Cukai, jalankan dua langkah tambahan setelah rekonsiliasi reguler
+di atas selesai (lihat detail metodologi & rumus di `references/kasus_khusus_kebakaran.md`):
+
+1. **Audit selisih klaim** —
+   `scripts/kasus_khusus_kebakaran/audit_selisih_kebakaran.py`. Membandingkan saldo
+   buku sebelum insiden (hasil rekonsiliasi reguler, 3 versi: Mutasi IT/Per Dok IT/Data
+   BC) dengan klaim SO pasca-insiden dan hasil pencacahan fisik bersama. Output: sheet
+   `Detail Perbandingan Item SO` dengan status per item (`Terbakar Sesuai Mutasi IT`,
+   `INDIKASI PENGGELEMBUNGAN KLAIM TERBAKAR`, `INDIKASI BARANG HILANG SEBELUM INSIDEN`).
+2. **Hitung tagihan pungutan atas selisih** —
+   `scripts/kasus_khusus_kebakaran/hitung_tagihan_pungutan.py`. Untuk item yang
+   berstatus "INDIKASI..." dari langkah 1, hitung estimasi BM + PPN Impor + PPh Impor
+   yang terutang atas kuantitas selisihnya — dasar nilai barang beda per kategori
+   (Barang Modal: nilai pabean per unit dari BC 2.3/4.0; Barang Jadi/WIP: nilai bahan
+   baku per KG dari BOM/resep komposisi). Output: sheet `Tagihan Pungutan Selisih`
+   dengan kolom formula Excel yang bisa ditelusuri + rincian sumber nilai per baris.
+
+Sampaikan ke user dua angka utama dari modul ini: **total kuantitas selisih per
+kategori barang** dan **total estimasi tagihan pungutan (Rp)**, plus item mana saja
+yang paling signifikan kontribusinya ke total tagihan.
